@@ -16,12 +16,25 @@ struct BankDemoApp: App {
     var body: some Scene {
         WindowGroup {
             if let user {
-                HomeView(user: user) { self.user = nil }
+                HomeView(user: user) { Dynatrace.endVisit(); self.user = nil }
             } else {
-                LoginView { self.user = $0 }
+                LoginView { tagSession($0); self.user = $0 }
             }
         }
     }
+}
+
+/// Tags the Dynatrace session with the username and the VIP/Regular category.
+private func tagSession(_ user: BankUser) {
+    Dynatrace.identifyUser(user.username)
+    // New RUM (Grail): session property. The key must start with "session_properties.".
+    Dynatrace.sendSessionPropertyEvent(
+        DTXSessionPropertyEventData().addSessionProperty("session_properties.category", value: user.category.rawValue)
+    )
+    // Classic RUM: action value. Map "category" to a session property in the app settings.
+    let action = DTXAction.enter(withName: "Login")
+    action?.reportValue(withName: "category", stringValue: user.category.rawValue)
+    action?.leave()
 }
 
 struct LoginView: View {

@@ -18,6 +18,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dynatrace.agent.api.SessionPropertyEventData
 import com.dynatrace.android.agent.Dynatrace
 import com.dynatrace.android.agent.conf.DataCollectionLevel
 import com.dynatrace.android.agent.conf.UserPrivacyOptions
@@ -38,12 +39,25 @@ class MainActivity : ComponentActivity() {
                 var user by remember { mutableStateOf<BankUser?>(null) }
                 Surface(Modifier.fillMaxSize().safeDrawingPadding()) {
                     val current = user
-                    if (current == null) LoginScreen { user = it }
-                    else HomeScreen(current) { user = null }
+                    if (current == null) LoginScreen { tagSession(it); user = it }
+                    else HomeScreen(current) { Dynatrace.endVisit(); user = null }
                 }
             }
         }
     }
+}
+
+/** Tags the Dynatrace session with the username and the VIP/Regular category. */
+private fun tagSession(user: BankUser) {
+    Dynatrace.identifyUser(user.username)
+    // New RUM (Grail): session property. The key must start with "session_properties.".
+    Dynatrace.sendSessionPropertyEvent(
+        SessionPropertyEventData().addSessionProperty("session_properties.category", user.category.label)
+    )
+    // Classic RUM: action value. Map "category" to a session property in the app settings.
+    val action = Dynatrace.enterAction("Login")
+    action.reportValue("category", user.category.label)
+    action.leaveAction()
 }
 
 @Composable

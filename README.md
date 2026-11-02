@@ -6,12 +6,16 @@ Two demo apps (iOS SwiftUI, Android Jetpack Compose) with the same flow: Login -
 | Version | Branch / tag | What it adds |
 |---|---|---|
 | base | `main`, tag `base` | Plain apps, no monitoring |
-| v1 | branch `v1`, tag `v1` | Base Dynatrace mobile instrumentation (auto-start, user opt-in, startup load balancing). Android also has session replay. |
+| v1 | branch `v1`, tag `v1` | Base Dynatrace mobile instrumentation (auto-start, user opt-in, startup load balancing; Android also session replay), user tag = username, and the VIP/Regular category as a user property. |
 
 ### v1 Dynatrace setup
 - Application ID `0723d7db-6587-4356-ba64-a3082d0452db`, beacon `https://bf97052cfu.bf.dynatrace.com/mbeacon`.
 - Android: Dynatrace Gradle plugin `8.+` in `android/build.gradle.kts`; privacy opt-in in `MainActivity.onCreate`.
 - iOS: Swift package `swift-mobile-sdk` (product `Dynatrace`); DTX keys in `ios/Info.plist`; privacy opt-in in `BankDemoApp.init`.
+- On login the app tags the session with the username (`identifyUser`) and sends the category (`VIP` or `Regular`) two ways:
+  - New RUM (Grail): session property `session_properties.category` (`sendSessionPropertyEvent`).
+  - Classic RUM: action `Login` with reported value `category`. To filter sessions by it, add a session property with key `category` (source: action value `category`) in the mobile app settings.
+- Logout ends the Dynatrace session (`endVisit`), so the next login starts a new session with its own tag and category.
 - The privacy opt-in is applied automatically for the demo. A real app must ask the user first.
 - To see sessions in Grail (`fetch user.sessions`) and full session replay, turn on the new RUM experience (gen3) and set session replay traffic to 100% in the mobile app settings in Dynatrace.
 
