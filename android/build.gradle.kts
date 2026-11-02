@@ -18,12 +18,9 @@ apply(plugin = "com.dynatrace.instrumentation")
 configure<com.dynatrace.tools.android.dsl.DynatraceExtension> {
     configurations {
         create("sampleConfig") {
-            autoStart {
-                applicationId("0723d7db-6587-4356-ba64-a3082d0452db")
-                beaconUrl("https://bf97052cfu.bf.dynatrace.com/mbeacon")
-            }
+            // v2: no auto-start. The app starts the agent itself, only for VIP users (MainActivity.kt).
+            autoStart.enabled(false)
             userOptIn(true)
-            agentBehavior.startupLoadBalancing(true)
             sessionReplay.enabled(true)
         }
     }

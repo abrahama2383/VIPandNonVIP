@@ -7,6 +7,7 @@ Two demo apps (iOS SwiftUI, Android Jetpack Compose) with the same flow: Login -
 |---|---|---|
 | base | `main`, tag `base` | Plain apps, no monitoring |
 | v1 | branch `v1`, tag `v1` | Base Dynatrace mobile instrumentation (auto-start, user opt-in, startup load balancing; Android also session replay), user tag = username, and the VIP/Regular category as a user property. |
+| v2 | branch `v2`, tag `v2.0` | Only VIP users are monitored. The agent starts manually on a VIP login; Regular users never start it, so they create no sessions and use no license. |
 
 ### v1 Dynatrace setup
 - Application ID `0723d7db-6587-4356-ba64-a3082d0452db`, beacon `https://bf97052cfu.bf.dynatrace.com/mbeacon`.
@@ -18,6 +19,18 @@ Two demo apps (iOS SwiftUI, Android Jetpack Compose) with the same flow: Login -
 - Logout ends the Dynatrace session (`endVisit`), so the next login starts a new session with its own tag and category.
 - The privacy opt-in is applied automatically for the demo. A real app must ask the user first.
 - For full session replay (not only on crashes), set session replay traffic to 100% in the mobile app settings in Dynatrace.
+
+### v2: monitor VIP users only
+Goal: cut license cost by not monitoring Regular users. Builds on v1 (same tag, category property and session replay).
+- Auto-start is off: `autoStart.enabled(false)` in `android/build.gradle.kts`, `DTXAutoStart = false` in `ios/Info.plist`.
+- The `Monitoring` helper (`MainActivity.kt`, `BankDemoApp.swift`) decides on login:
+  - **VIP**: start the agent (first time only), opt in to `USER_BEHAVIOR`, then tag the session and report `category` as in v1.
+  - **Regular**: do nothing. The agent is never started, so nothing is sent.
+- Logout calls `Dynatrace.shutdown()`. This ends the session and stops the agent, so a Regular user who logs in next sends nothing. The next VIP login starts the agent again.
+- Don't switch to data collection `OFF` to "pause" monitoring. An `OFF` agent still sends a "Loading <app>" event, and Dynatrace shows each one as an anonymous session.
+- The first VIP login on a device sends one such anonymous session, because the agent starts at `OFF` (user opt-in mode) before the app opts in. The opt-in is saved, so later VIP logins start straight at `USER_BEHAVIOR`.
+- `shutdown()` is deprecated on iOS (since 8.303, no replacement) but still works.
+- On Android the agent starts from the activity (`Dynatrace.startup(activity, ...)`), so it misses the app start before login. Same on iOS.
 
 ## Login rule
 | Username | Password | Category |

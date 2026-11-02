@@ -1,5 +1,6 @@
 package com.demo.bankdemo
 
+import android.app.Activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,12 +21,46 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.dynatrace.android.agent.Dynatrace
 import com.dynatrace.android.agent.conf.DataCollectionLevel
+import com.dynatrace.android.agent.conf.DynatraceConfigurationBuilder
 import com.dynatrace.android.agent.conf.UserPrivacyOptions
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContent {
+            MaterialTheme {
+                var user by remember { mutableStateOf<BankUser?>(null) }
+                Surface(Modifier.fillMaxSize().safeDrawingPadding()) {
+                    val current = user
+                    if (current == null) LoginScreen { Monitoring.login(this, it); user = it }
+                    else HomeScreen(current) { Monitoring.logout(); user = null }
+                }
+            }
+        }
+    }
+}
+
+/**
+ * v2: only VIP users are monitored, to save license cost. A Regular user never starts
+ * the Dynatrace agent, so the agent sends nothing and no session is created.
+ */
+private object Monitoring {
+    private var started = false
+
+    fun login(activity: Activity, user: BankUser) {
+        if (user.category != Category.VIP) return
+        if (!started) {
+            Dynatrace.startup(
+                activity,
+                DynatraceConfigurationBuilder(
+                    "0723d7db-6587-4356-ba64-a3082d0452db",
+                    "https://bf97052cfu.bf.dynatrace.com/mbeacon",
+                ).withUserOptIn(true).withStartupLoadBalancing(true).buildConfiguration(),
+            )
+            started = true
+        }
         // Demo only: a real app must ask the user before opting in.
+        // The choice is saved, so only the first VIP login on a device starts at OFF.
         Dynatrace.applyUserPrivacyOptions(
             UserPrivacyOptions.builder()
                 .withDataCollectionLevel(DataCollectionLevel.USER_BEHAVIOR)
@@ -33,26 +68,20 @@ class MainActivity : ComponentActivity() {
                 .withScreenRecordOptedIn(true)
                 .build()
         )
-        setContent {
-            MaterialTheme {
-                var user by remember { mutableStateOf<BankUser?>(null) }
-                Surface(Modifier.fillMaxSize().safeDrawingPadding()) {
-                    val current = user
-                    if (current == null) LoginScreen { tagSession(it); user = it }
-                    else HomeScreen(current) { Dynatrace.endVisit(); user = null }
-                }
-            }
-        }
+        Dynatrace.identifyUser(user.username)
+        // Classic RUM: action value. Define "category" as a session property in the app settings.
+        val action = Dynatrace.enterAction("Login")
+        action.reportValue("category", user.category.label)
+        action.leaveAction()
     }
-}
 
-/** Tags the Dynatrace session with the username and the VIP/Regular category. */
-private fun tagSession(user: BankUser) {
-    Dynatrace.identifyUser(user.username)
-    // Classic RUM: action value. Define "category" as a session property in the app settings.
-    val action = Dynatrace.enterAction("Login")
-    action.reportValue("category", user.category.label)
-    action.leaveAction()
+    fun logout() {
+        if (!started) return
+        // Stop the agent: this ends the session, and a Regular user who logs in next sends nothing.
+        // Don't switch to OFF instead: an OFF agent still sends a "Loading" event that shows up as a session.
+        Dynatrace.shutdown()
+        started = false
+    }
 }
 
 @Composable

@@ -5,32 +5,50 @@ import Dynatrace
 struct BankDemoApp: App {
     @State private var user: BankUser?
 
-    init() {
-        // Demo only: a real app must ask the user before opting in.
-        let privacy = Dynatrace.userPrivacyOptions()
-        privacy.dataCollectionLevel = .userBehavior
-        privacy.crashReportingOptedIn = true
-        Dynatrace.applyUserPrivacyOptions(privacy) { _ in }
-    }
-
     var body: some Scene {
         WindowGroup {
             if let user {
-                HomeView(user: user) { Dynatrace.endVisit(); self.user = nil }
+                HomeView(user: user) { Monitoring.logout(); self.user = nil }
             } else {
-                LoginView { tagSession($0); self.user = $0 }
+                LoginView { Monitoring.login($0); self.user = $0 }
             }
         }
     }
 }
 
-/// Tags the Dynatrace session with the username and the VIP/Regular category.
-private func tagSession(_ user: BankUser) {
-    Dynatrace.identifyUser(user.username)
-    // Classic RUM: action value. Define "category" as a session property in the app settings.
-    let action = DTXAction.enter(withName: "Login")
-    action?.reportValue(withName: "category", stringValue: user.category.rawValue)
-    action?.leave()
+/// v2: only VIP users are monitored, to save license cost. A Regular user never starts
+/// the Dynatrace agent (DTXAutoStart is false), so the agent sends nothing and no session is created.
+@MainActor
+enum Monitoring {
+    private static var started = false
+
+    static func login(_ user: BankUser) {
+        guard user.category == .vip else { return }
+        if !started {
+            Dynatrace.startupWithInfoPlistSettings()
+            started = true
+        }
+        // Demo only: a real app must ask the user before opting in.
+        // The choice is saved, so only the first VIP login on a device starts at OFF.
+        let privacy = Dynatrace.userPrivacyOptions()
+        privacy.dataCollectionLevel = .userBehavior
+        privacy.crashReportingOptedIn = true
+        Dynatrace.applyUserPrivacyOptions(privacy) { _ in }
+        Dynatrace.identifyUser(user.username)
+        // Classic RUM: action value. Define "category" as a session property in the app settings.
+        let action = DTXAction.enter(withName: "Login")
+        action?.reportValue(withName: "category", stringValue: user.category.rawValue)
+        action?.leave()
+    }
+
+    static func logout() {
+        guard started else { return }
+        // Stop the agent: this ends the session, and a Regular user who logs in next sends nothing.
+        // Don't switch to OFF instead: an OFF agent still sends a "Loading" event that shows up as a session.
+        // shutdown() is deprecated on iOS (8.303) with no replacement, but still works and allows a restart.
+        Dynatrace.shutdown()
+        started = false
+    }
 }
 
 struct LoginView: View {

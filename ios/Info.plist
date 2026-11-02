@@ -10,5 +10,7 @@
 	<true/>
 	<key>DTXStartupLoadBalancing</key>
 	<true/>
+	<key>DTXAutoStart</key>
+	<false/>
 </dict>
 </plist>
