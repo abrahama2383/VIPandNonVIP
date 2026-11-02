@@ -27,11 +27,7 @@ struct BankDemoApp: App {
 /// Tags the Dynatrace session with the username and the VIP/Regular category.
 private func tagSession(_ user: BankUser) {
     Dynatrace.identifyUser(user.username)
-    // New RUM (Grail): session property. The key must start with "session_properties.".
-    Dynatrace.sendSessionPropertyEvent(
-        DTXSessionPropertyEventData().addSessionProperty("session_properties.category", value: user.category.rawValue)
-    )
-    // Classic RUM: action value. Map "category" to a session property in the app settings.
+    // Classic RUM: action value. Define "category" as a session property in the app settings.
     let action = DTXAction.enter(withName: "Login")
     action?.reportValue(withName: "category", stringValue: user.category.rawValue)
     action?.leave()

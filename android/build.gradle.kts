@@ -24,7 +24,6 @@ configure<com.dynatrace.tools.android.dsl.DynatraceExtension> {
             }
             userOptIn(true)
             agentBehavior.startupLoadBalancing(true)
-            agentBehavior.startupWithGrailEnabled(true)
             sessionReplay.enabled(true)
         }
     }

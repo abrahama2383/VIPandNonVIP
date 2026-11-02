@@ -12,12 +12,12 @@ Two demo apps (iOS SwiftUI, Android Jetpack Compose) with the same flow: Login -
 - Application ID `0723d7db-6587-4356-ba64-a3082d0452db`, beacon `https://bf97052cfu.bf.dynatrace.com/mbeacon`.
 - Android: Dynatrace Gradle plugin `8.+` in `android/build.gradle.kts`; privacy opt-in in `MainActivity.onCreate`.
 - iOS: Swift package `swift-mobile-sdk` (product `Dynatrace`); DTX keys in `ios/Info.plist`; privacy opt-in in `BankDemoApp.init`.
-- On login the app tags the session with the username (`identifyUser`) and sends the category (`VIP` or `Regular`) two ways:
-  - New RUM (Grail): session property `session_properties.category` (`sendSessionPropertyEvent`).
-  - Classic RUM: action `Login` with reported value `category`. To filter sessions by it, add a session property with key `category` (source: action value `category`) in the mobile app settings.
+- Uses classic (gen2) RUM only.
+- On login the app tags the session with the username (`identifyUser`) and reports the category (`VIP` or `Regular`) as value `category` on a custom action `Login`.
+- To see it as a user session property, add it in the mobile app settings under **Session and user action properties**: expression type *SDK reported value*, name and key `category`, type String, store as session property. Only sessions after that change get the property.
 - Logout ends the Dynatrace session (`endVisit`), so the next login starts a new session with its own tag and category.
 - The privacy opt-in is applied automatically for the demo. A real app must ask the user first.
-- To see sessions in Grail (`fetch user.sessions`) and full session replay, turn on the new RUM experience (gen3) and set session replay traffic to 100% in the mobile app settings in Dynatrace.
+- For full session replay (not only on crashes), set session replay traffic to 100% in the mobile app settings in Dynatrace.
 
 ## Login rule
 | Username | Password | Category |
