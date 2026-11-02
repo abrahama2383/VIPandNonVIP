@@ -1,0 +1,15 @@
+{
+  "originHash" : "988c58a89f9092defb243f09a63119d97c520c190217cde567abbee0f5d2537f",
+  "pins" : [
+    {
+      "identity" : "swift-mobile-sdk",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/Dynatrace/swift-mobile-sdk.git",
+      "state" : {
+        "revision" : "08bc37bd9689038dd1b9fde259ee10452a131094",
+        "version" : "8.349.1"
+      }
+    }
+  ],
+  "version" : 3
+}

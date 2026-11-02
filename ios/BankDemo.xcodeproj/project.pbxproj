@@ -9,6 +9,10 @@
 /* Begin PBXBuildFile section */
 /* End PBXBuildFile section */
 
+/* Begin PBXBuildFile section */
+		A10000000000000000000010 /* Dynatrace in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000012 /* Dynatrace */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		A10000000000000000000001 /* BankDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BankDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -26,6 +30,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A10000000000000000000010 /* Dynatrace in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -67,6 +72,9 @@
 				A10000000000000000000002 /* BankDemo */,
 			);
 			name = BankDemo;
+			packageProductDependencies = (
+				A10000000000000000000012 /* Dynatrace */,
+			);
 			productName = BankDemo;
 			productReference = A10000000000000000000001 /* BankDemo.app */;
 			productType = "com.apple.product-type.application";
@@ -95,6 +103,9 @@
 			);
 			mainGroup = A10000000000000000000004;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				A10000000000000000000011 /* XCRemoteSwiftPackageReference "swift-mobile-sdk" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A10000000000000000000005 /* Products */;
 			projectDirPath = "";
@@ -169,6 +180,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bank Demo";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -194,6 +206,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "Bank Demo";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -234,6 +247,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		A10000000000000000000011 /* XCRemoteSwiftPackageReference "swift-mobile-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Dynatrace/swift-mobile-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.347.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A10000000000000000000012 /* Dynatrace */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000011 /* XCRemoteSwiftPackageReference "swift-mobile-sdk" */;
+			productName = Dynatrace;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 	};
 	rootObject = A10000000000000000000009 /* Project object */;

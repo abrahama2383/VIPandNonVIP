@@ -1,8 +1,17 @@
 import SwiftUI
+import Dynatrace
 
 @main
 struct BankDemoApp: App {
     @State private var user: BankUser?
+
+    init() {
+        // Demo only: a real app must ask the user before opting in.
+        let privacy = Dynatrace.userPrivacyOptions()
+        privacy.dataCollectionLevel = .userBehavior
+        privacy.crashReportingOptedIn = true
+        Dynatrace.applyUserPrivacyOptions(privacy) { _ in }
+    }
 
     var body: some Scene {
         WindowGroup {

@@ -18,10 +18,21 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.dynatrace.android.agent.Dynatrace
+import com.dynatrace.android.agent.conf.DataCollectionLevel
+import com.dynatrace.android.agent.conf.UserPrivacyOptions
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Demo only: a real app must ask the user before opting in.
+        Dynatrace.applyUserPrivacyOptions(
+            UserPrivacyOptions.builder()
+                .withDataCollectionLevel(DataCollectionLevel.USER_BEHAVIOR)
+                .withCrashReportingOptedIn(true)
+                .withScreenRecordOptedIn(true)
+                .build()
+        )
         setContent {
             MaterialTheme {
                 var user by remember { mutableStateOf<BankUser?>(null) }
