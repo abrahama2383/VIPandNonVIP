@@ -31,9 +31,20 @@ enum Monitoring {
         // Demo only: a real app must ask the user before opting in.
         // The choice is saved, so only the first VIP login on a device starts at OFF.
         let privacy = Dynatrace.userPrivacyOptions()
+        if privacy.dataCollectionLevel == .userBehavior {
+            tagSession(user)
+            return
+        }
         privacy.dataCollectionLevel = .userBehavior
         privacy.crashReportingOptedIn = true
-        Dynatrace.applyUserPrivacyOptions(privacy) { _ in }
+        // On iOS the opt-in applies asynchronously. Tag only after it lands,
+        // or the user tag and the Login action are dropped (collection is still OFF).
+        Dynatrace.applyUserPrivacyOptions(privacy) { _ in
+            Task { @MainActor in tagSession(user) }
+        }
+    }
+
+    private static func tagSession(_ user: BankUser) {
         Dynatrace.identifyUser(user.username)
         // Classic RUM: action value. Define "category" as a session property in the app settings.
         let action = DTXAction.enter(withName: "Login")

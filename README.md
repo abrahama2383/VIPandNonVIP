@@ -31,6 +31,7 @@ Goal: cut license cost by not monitoring Regular users. Builds on v1 (same tag, 
 - Logout calls `Dynatrace.shutdown()`. This ends the session and stops the agent, so a Regular user who logs in next sends nothing. The next VIP login starts the agent again.
 - Don't switch to data collection `OFF` to "pause" monitoring. An `OFF` agent still sends a "Loading <app>" event, and Dynatrace shows each one as an anonymous session.
 - The first VIP login on a device sends one such anonymous session, because the agent starts at `OFF` (user opt-in mode) before the app opts in. The opt-in is saved, so later VIP logins start straight at `USER_BEHAVIOR`.
+- iOS applies the opt-in asynchronously, so the app sets the user tag and the Login action only after the opt-in lands. Otherwise the first VIP login on a device sends an anonymous session with no tag or category.
 - `shutdown()` is deprecated on iOS (since 8.303, no replacement) but still works.
 - On Android the agent starts from the activity (`Dynatrace.startup(activity, ...)`), so it misses the app start before login. Same on iOS.
 
