@@ -10,3 +10,7 @@ build/
 local.properties
 .idea/
 *.iml
+
+# Firebase config files (per-project; see README for setup)
+android/app/google-services.json
+ios/BankDemo/GoogleService-Info.plist

@@ -25,10 +25,17 @@ import com.dynatrace.android.agent.Dynatrace
 import com.dynatrace.android.agent.conf.DataCollectionLevel
 import com.dynatrace.android.agent.conf.DynatraceConfigurationBuilder
 import com.dynatrace.android.agent.conf.UserPrivacyOptions
+import com.google.firebase.Firebase
+import com.google.firebase.remoteconfig.ConfigUpdate
+import com.google.firebase.remoteconfig.ConfigUpdateListener
+import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
+import com.google.firebase.remoteconfig.remoteConfig
+import com.google.firebase.remoteconfig.remoteConfigSettings
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Monitoring.setUpRemoteConfig()
         setContent {
             MaterialTheme {
                 var user by remember { mutableStateOf<BankUser?>(null) }
@@ -43,14 +50,38 @@ class MainActivity : ComponentActivity() {
 }
 
 /**
- * v2: only VIP users are monitored, to save license cost. A Regular user never starts
- * the Dynatrace agent, so the agent sends nothing and no session is created.
+ * v3: Firebase Remote Config decides which categories are monitored, to save license cost.
+ * A user whose category is not in the list never starts the Dynatrace agent,
+ * so the agent sends nothing and no session is created.
  */
 private object Monitoring {
     private var started = false
 
+    /** Remote Config parameter: comma-separated categories, e.g. "VIP", "VIP,Regular", or "" for none. */
+    private const val KEY = "monitored_categories"
+
+    fun setUpRemoteConfig() {
+        val remoteConfig = Firebase.remoteConfig
+        // ponytail: 0 = fetch on every launch, fine for a demo; use 3600+ in production to avoid throttling.
+        remoteConfig.setConfigSettingsAsync(remoteConfigSettings { minimumFetchIntervalInSeconds = 0 })
+        // Used until the first fetch succeeds (and when offline): behave like v2.
+        remoteConfig.setDefaultsAsync(mapOf(KEY to "VIP"))
+        remoteConfig.fetchAndActivate()
+        // Real-time updates: a value published in the console applies from the next login.
+        remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
+            override fun onUpdate(configUpdate: ConfigUpdate) {
+                remoteConfig.activate()
+            }
+
+            override fun onError(error: FirebaseRemoteConfigException) {}
+        })
+    }
+
+    private fun isMonitored(category: Category) =
+        Firebase.remoteConfig.getString(KEY).split(",").any { it.trim().equals(category.label, ignoreCase = true) }
+
     fun login(activity: Activity, user: BankUser) {
-        if (user.category != Category.VIP) return
+        if (!isMonitored(user.category)) return
         if (!started) {
             Dynatrace.startup(
                 activity,

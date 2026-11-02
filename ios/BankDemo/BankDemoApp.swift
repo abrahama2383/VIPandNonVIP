@@ -1,9 +1,16 @@
 import SwiftUI
 import Dynatrace
+import FirebaseCore
+import FirebaseRemoteConfig
 
 @main
 struct BankDemoApp: App {
     @State private var user: BankUser?
+
+    init() {
+        FirebaseApp.configure()
+        Monitoring.setUpRemoteConfig()
+    }
 
     var body: some Scene {
         WindowGroup {
@@ -16,14 +23,39 @@ struct BankDemoApp: App {
     }
 }
 
-/// v2: only VIP users are monitored, to save license cost. A Regular user never starts
-/// the Dynatrace agent (DTXAutoStart is false), so the agent sends nothing and no session is created.
+/// v3: Firebase Remote Config decides which categories are monitored, to save license cost.
+/// A user whose category is not in the list never starts the Dynatrace agent (DTXAutoStart is false),
+/// so the agent sends nothing and no session is created.
 @MainActor
 enum Monitoring {
     private static var started = false
 
+    /// Remote Config parameter: comma-separated categories, e.g. "VIP", "VIP,Regular", or "" for none.
+    private static let key = "monitored_categories"
+
+    static func setUpRemoteConfig() {
+        let remoteConfig = RemoteConfig.remoteConfig()
+        let settings = RemoteConfigSettings()
+        // ponytail: 0 = fetch on every launch, fine for a demo; use 3600+ in production to avoid throttling.
+        settings.minimumFetchInterval = 0
+        remoteConfig.configSettings = settings
+        // Used until the first fetch succeeds (and when offline): behave like v2.
+        remoteConfig.setDefaults([key: "VIP" as NSObject])
+        remoteConfig.fetchAndActivate { _, _ in }
+        // Real-time updates: a value published in the console applies from the next login.
+        remoteConfig.addOnConfigUpdateListener { _, error in
+            if error == nil { RemoteConfig.remoteConfig().activate { _, _ in } }
+        }
+    }
+
+    private static func isMonitored(_ category: Category) -> Bool {
+        RemoteConfig.remoteConfig()[key].stringValue
+            .split(separator: ",")
+            .contains { $0.trimmingCharacters(in: .whitespaces).caseInsensitiveCompare(category.rawValue) == .orderedSame }
+    }
+
     static func login(_ user: BankUser) {
-        guard user.category == .vip else { return }
+        guard isMonitored(user.category) else { return }
         if !started {
             Dynatrace.startupWithInfoPlistSettings()
             started = true

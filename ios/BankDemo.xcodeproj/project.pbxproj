@@ -11,6 +11,8 @@
 
 /* Begin PBXBuildFile section */
 		A10000000000000000000010 /* Dynatrace in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000012 /* Dynatrace */; };
+		A10000000000000000000013 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000015 /* FirebaseCore */; };
+		A10000000000000000000014 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = A10000000000000000000016 /* FirebaseRemoteConfig */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +33,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A10000000000000000000010 /* Dynatrace in Frameworks */,
+				A10000000000000000000013 /* FirebaseCore in Frameworks */,
+				A10000000000000000000014 /* FirebaseRemoteConfig in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -74,6 +78,8 @@
 			name = BankDemo;
 			packageProductDependencies = (
 				A10000000000000000000012 /* Dynatrace */,
+				A10000000000000000000015 /* FirebaseCore */,
+				A10000000000000000000016 /* FirebaseRemoteConfig */,
 			);
 			productName = BankDemo;
 			productReference = A10000000000000000000001 /* BankDemo.app */;
@@ -105,6 +111,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				A10000000000000000000011 /* XCRemoteSwiftPackageReference "swift-mobile-sdk" */,
+				A10000000000000000000017 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = A10000000000000000000005 /* Products */;
@@ -257,6 +264,14 @@
 				minimumVersion = 8.347.1;
 			};
 		};
+		A10000000000000000000017 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 13.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -264,6 +279,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = A10000000000000000000011 /* XCRemoteSwiftPackageReference "swift-mobile-sdk" */;
 			productName = Dynatrace;
+		};
+		A10000000000000000000015 /* FirebaseCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000017 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCore;
+		};
+		A10000000000000000000016 /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A10000000000000000000017 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
 		};
 /* End XCSwiftPackageProductDependency section */
 

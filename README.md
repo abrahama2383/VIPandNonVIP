@@ -10,6 +10,7 @@ Home has a **Services** list with 5 static pages: Transfer, Pay Bills, Top Up, T
 | base | `main`, tag `base` | Plain apps, no monitoring |
 | v1 | branch `v1`, tag `v1` | Base Dynatrace mobile instrumentation (auto-start, user opt-in, startup load balancing; Android also session replay), user tag = username, and the VIP/Regular category as a user property. |
 | v2 | branch `v2`, tag `v2.0` | Only VIP users are monitored. The agent starts manually on a VIP login; Regular users never start it, so they create no sessions and use no license. |
+| v3 | branch `v3`, tag `v3.0` | Same as v2, but Firebase Remote Config decides which categories are monitored, so you can change it without releasing a new app. |
 
 ### v1 Dynatrace setup
 - Application ID `0723d7db-6587-4356-ba64-a3082d0452db`, beacon `https://bf97052cfu.bf.dynatrace.com/mbeacon`.
@@ -34,6 +35,21 @@ Goal: cut license cost by not monitoring Regular users. Builds on v1 (same tag, 
 - iOS applies the opt-in asynchronously, so the app sets the user tag and the Login action only after the opt-in lands. Otherwise the first VIP login on a device sends an anonymous session with no tag or category.
 - `shutdown()` is deprecated on iOS (since 8.303, no replacement) but still works.
 - On Android the agent starts from the activity (`Dynatrace.startup(activity, ...)`), so it misses the app start before login. Same on iOS.
+
+### v3: choose monitored categories with Firebase Remote Config
+Builds on v2: no auto-start, manual start at login, shutdown on logout.
+- Remote Config parameter `monitored_categories` (String), a comma-separated list:
+  - `VIP`: only VIP users, same as v2. This is also the built-in default, used offline or before the first fetch.
+  - `VIP,Regular`: everyone.
+  - empty: nobody.
+- The app fetches on every launch (minimum fetch interval 0, demo setting) and listens for real-time updates, so a value published in the console applies from the next login. Users already logged in keep their current state until they log out.
+- Remote Config conditions (platform, app version, country, random percentage) also work, for example VIP plus 10% of Regular users.
+- Remote Config is free on the Firebase Spark plan. Google Analytics is not needed.
+
+Setup (the Firebase files are per project and not in git):
+1. Create a Firebase project and register Android app `com.demo.bankdemo` and iOS app `com.demo.BankDemo`.
+2. Put `google-services.json` in `android/app/` and `GoogleService-Info.plist` in `ios/BankDemo/`.
+3. In Remote Config, add `monitored_categories` (String, default `VIP`) and publish.
 
 ## Login rule
 | Username | Password | Category |
