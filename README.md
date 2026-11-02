@@ -2,6 +2,8 @@
 
 Two demo apps (iOS SwiftUI, Android Jetpack Compose) with the same flow: Login -> static Home page.
 
+Home has a **Services** list with 5 static pages: Transfer, Pay Bills, Top Up, Transaction History, Profile. Transfer, Pay Bills and Top Up have a button that only shows a success message; nothing is sent.
+
 ## Versions
 | Version | Branch / tag | What it adds |
 |---|---|---|
