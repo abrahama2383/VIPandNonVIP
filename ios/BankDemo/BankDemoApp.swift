@@ -86,6 +86,15 @@ struct HomeView: View {
                     LabeledContent("Salary", value: "+ Rp 10.000.000")
                     LabeledContent("Electricity bill", value: "- Rp 350.000")
                 }
+                Section("Services") {
+                    ForEach(BankPage.allCases) { page in
+                        NavigationLink {
+                            PageView(page: page, user: user)
+                        } label: {
+                            Label(page.rawValue, systemImage: page.icon)
+                        }
+                    }
+                }
             }
             .navigationTitle("Home")
             .toolbar {

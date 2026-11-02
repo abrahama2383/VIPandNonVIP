@@ -5,8 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -78,8 +80,13 @@ fun LoginScreen(onLogin: (BankUser) -> Unit) {
 @Composable
 fun HomeScreen(user: BankUser, onLogout: () -> Unit) {
     val accent = if (user.category == Category.VIP) Color(0xFFBF9A33) else Color(0xFF1565C0)
+    var page by remember { mutableStateOf<BankPage?>(null) }
+    page?.let { PageScreen(it, user) { page = null }; return }
 
-    Column(Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(
+        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text("Home", fontSize = 32.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
             TextButton(onClick = onLogout) { Text("Logout") }
@@ -105,6 +112,7 @@ fun HomeScreen(user: BankUser, onLogout: () -> Unit) {
                 "Electricity bill" to "- Rp 350.000",
             ),
         )
+        ServicesSection { page = it }
     }
 }
 
