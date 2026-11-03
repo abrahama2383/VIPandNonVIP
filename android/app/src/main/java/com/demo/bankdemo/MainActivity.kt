@@ -30,7 +30,6 @@ import com.google.firebase.remoteconfig.ConfigUpdate
 import com.google.firebase.remoteconfig.ConfigUpdateListener
 import com.google.firebase.remoteconfig.FirebaseRemoteConfigException
 import com.google.firebase.remoteconfig.remoteConfig
-import com.google.firebase.remoteconfig.remoteConfigSettings
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,11 +61,11 @@ private object Monitoring {
 
     fun setUpRemoteConfig() {
         val remoteConfig = Firebase.remoteConfig
-        // ponytail: 0 = fetch on every launch, fine for a demo; use 3600+ in production to avoid throttling.
-        remoteConfig.setConfigSettingsAsync(remoteConfigSettings { minimumFetchIntervalInSeconds = 0 })
         // Used until the first fetch succeeds (and when offline): behave like v2.
         remoteConfig.setDefaultsAsync(mapOf(KEY to "VIP"))
-        remoteConfig.fetchAndActivate()
+        // ponytail: fetch(0) skips the cache on every launch, fine for a demo; use 3600+ in production to avoid throttling.
+        // (setConfigSettingsAsync + fetchAndActivate races: the fetch can still use the default 12 h cache.)
+        remoteConfig.fetch(0).addOnSuccessListener { remoteConfig.activate() }
         // Real-time updates: a value published in the console applies from the next login.
         remoteConfig.addOnConfigUpdateListener(object : ConfigUpdateListener {
             override fun onUpdate(configUpdate: ConfigUpdate) {
